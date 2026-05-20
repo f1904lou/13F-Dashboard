@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "13F Fund Dashboard",
-  description: "Search SEC filers and inspect their latest 13F holdings."
+  description: "Analyze SEC filers and inspect their latest 13F holdings."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

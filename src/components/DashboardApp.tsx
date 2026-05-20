@@ -42,10 +42,10 @@ function changeLabel(row: MovementRow) {
 function EmptyDashboard({ onExample }: { onExample: () => void }) {
   return (
     <section className="empty-state">
-      <p className="eyebrow">SEC EDGAR 13F search</p>
-      <h1>Search any filer. Read the latest book.</h1>
+      <p className="eyebrow">Try a known filing manager</p>
+      <h1>Load a sample fund.</h1>
       <p>
-        Enter a CIK, ticker, or company name to build a fresh 13F dashboard from official SEC filings.
+        Start with Situational Awareness LP, or search another manager above.
       </p>
       <button className="ghost-button" type="button" onClick={onExample}>
         Try Situational Awareness LP
@@ -209,7 +209,7 @@ function Trend({ filings }: { filings: FilingSnapshot[] }) {
 
   return (
     <svg className="trend" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="13F value trend">
-      <path d={area} fill="rgba(240, 201, 77, .22)" />
+      <path d={area} fill="rgba(91, 215, 199, .16)" />
       <path d={line} fill="none" stroke="var(--yellow)" strokeWidth="3" strokeLinecap="round" />
       <line x1={pad.left} y1={height - pad.bottom} x2={width - pad.right} y2={height - pad.bottom} stroke="var(--line)" />
       {filings.map((filing, index) => (
@@ -491,8 +491,8 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
       <div className="shell">
         <section id="search" className="search-panel">
           <div>
-            <p className="eyebrow">Tracing filings</p>
-            <h1>Search SEC filers and read the latest 13F book.</h1>
+            <p className="eyebrow">SEC 13F Analyzer</p>
+            <h1>Find a Fund</h1>
           </div>
           <form
             className="fund-search"
@@ -533,8 +533,8 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
         </section>
 
         <div id="dashboard">
-          {status === "loading" && <section className="loading-state">Loading fund...</section>}
-          {!payload && status !== "loading" && <EmptyDashboard onExample={tryExample} />}
+          {status === "loading" && <section className="loading-state">Loading filer...</section>}
+          {!payload && status !== "loading" && error && <EmptyDashboard onExample={tryExample} />}
           {payload && status !== "loading" && <Dashboard key={payload.cik} payload={payload} />}
         </div>
 

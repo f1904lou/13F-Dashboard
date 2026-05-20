@@ -1,18 +1,21 @@
 :root {
-  --bg: #050506;
-  --surface: #0d0d0f;
-  --panel: #131217;
-  --panel-2: #17161c;
-  --ink: #f3f1eb;
-  --muted: #9c9a96;
-  --faint: #6f6b66;
-  --line: #2a282f;
-  --line-strong: #3a363f;
-  --yellow: #f0c94d;
-  --green: #75dc8b;
-  --red: #ff7884;
-  --blue: #8ab9ff;
-  --shadow: 0 1px 0 rgba(255, 255, 255, .03);
+  --bg: #080707;
+  --bar: #030202;
+  --surface: #171514;
+  --panel: #191716;
+  --panel-2: #201d1b;
+  --ink: #f4eee8;
+  --muted: #a99f96;
+  --faint: #756b63;
+  --line: #342c28;
+  --line-strong: #ed6f25;
+  --orange: #ed6f25;
+  --yellow: #ed6f25;
+  --green: #1f8f50;
+  --red: #d64035;
+  --blue: #d7b18b;
+  --violet: #b98c6f;
+  --shadow: none;
 }
 
 * {
@@ -29,7 +32,7 @@ body {
   margin: 0;
   color: var(--ink);
   background: var(--bg);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Helvetica Neue", Arial, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 button,
@@ -50,40 +53,58 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  min-height: 58px;
-  padding: 0 28px;
-  background: rgba(5, 5, 6, .9);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(16px);
+  min-height: 72px;
+  padding: 0 34px;
+  background: var(--bar);
+  border-bottom: 1px solid rgba(237, 111, 37, .25);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   text-decoration: none;
 }
 
 .brand strong {
-  font-size: 28px;
-  line-height: 1;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
 }
 
 .brand-mark {
-  width: 58px;
-  height: 25px;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 18px 12px, #f0c94d 0 11px, transparent 12px),
-    radial-gradient(circle at 30px 12px, #ff7058 0 11px, transparent 12px),
-    radial-gradient(circle at 42px 12px, #4b68ff 0 11px, transparent 12px);
-  border: 1px solid rgba(255, 255, 255, .18);
+  position: relative;
+  width: 52px;
+  height: 24px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.brand-mark::before,
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 36px;
+  height: 7px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--red);
+}
+
+.brand-mark::after {
+  top: 14px;
+  left: 14px;
+  background: var(--green);
 }
 
 .topbar nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .topbar nav a,
@@ -97,45 +118,55 @@ th,
 footer,
 .loading-state {
   font-family: "SFMono-Regular", "Roboto Mono", "Cascadia Mono", ui-monospace, monospace;
-  letter-spacing: .16em;
+  letter-spacing: .11em;
   text-transform: uppercase;
 }
 
 .topbar nav a {
-  padding: 9px 12px;
+  padding: 9px 11px;
   color: var(--muted);
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: 7px;
   font-size: 11px;
   text-decoration: none;
 }
 
 .topbar nav a:hover {
-  color: var(--yellow);
-  border-color: rgba(240, 201, 77, .4);
+  color: var(--ink);
+  background: rgba(237, 111, 37, .08);
+  border-color: rgba(237, 111, 37, .35);
 }
 
 .shell {
-  width: min(1500px, calc(100% - 44px));
+  width: min(1480px, calc(100% - 44px));
   margin: 0 auto;
-  padding: 44px 0 38px;
+  padding: 0 0 38px;
 }
 
 .search-panel,
 .empty-state,
 .fund-hero {
-  margin-bottom: 34px;
+  margin-bottom: 30px;
 }
 
 .search-panel {
   display: grid;
-  gap: 20px;
+  grid-template-columns: 1fr;
+  align-content: center;
+  justify-items: center;
+  gap: 18px;
+  min-height: min(520px, calc(100vh - 72px));
+  padding: 48px 0 34px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 .eyebrow {
-  margin: 0 0 14px;
-  color: var(--yellow);
-  font-size: 11px;
+  margin: 0 0 6px;
+  color: var(--ink);
+  font-size: 13px;
+  text-align: center;
 }
 
 h1,
@@ -148,40 +179,47 @@ p {
 .search-panel h1,
 .empty-state h1,
 .fund-hero h1 {
-  max-width: 980px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(44px, 7vw, 88px);
+  max-width: 900px;
+  font-size: clamp(42px, 8vw, 92px);
+  font-family: Canela, "Canela Deck", "Canela Text", Georgia, "Times New Roman", serif;
   font-style: italic;
   font-weight: 400;
-  line-height: .96;
-  letter-spacing: 0;
+  line-height: .94;
+  letter-spacing: -.02em;
+  text-align: center;
 }
 
 .fund-hero h1 {
-  max-width: 1150px;
+  max-width: 1120px;
+  font-family: "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 760;
+  letter-spacing: -.04em;
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
 .search-panel p,
 .empty-state p,
 .fund-hero p {
-  max-width: 760px;
-  margin-top: 18px;
+  max-width: 780px;
+  margin-top: 16px;
   color: var(--muted);
   font-size: 16px;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .fund-search {
   display: grid;
   grid-template-columns: 28px 1fr auto;
   align-items: center;
-  gap: 10px;
-  min-height: 54px;
-  padding: 8px 10px 8px 16px;
-  background: var(--panel);
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  gap: 0;
+  width: min(740px, 100%);
+  min-height: 58px;
+  padding: 0 0 0 18px;
+  background: transparent;
+  border: 2px solid var(--orange);
+  border-radius: 0;
 }
 
 .fund-search span {
@@ -206,13 +244,15 @@ p {
 
 .fund-search button,
 .ghost-button {
-  min-height: 38px;
-  padding: 0 15px;
-  color: #120f05;
-  background: var(--yellow);
-  border: 1px solid transparent;
-  border-radius: 5px;
-  font-weight: 800;
+  align-self: stretch;
+  min-height: 54px;
+  padding: 0 24px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-left: 2px solid var(--orange);
+  border-radius: 0;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -223,12 +263,13 @@ p {
 
 .ghost-button {
   margin-top: 22px;
-  color: var(--yellow);
+  color: var(--orange);
   background: transparent;
-  border-color: rgba(240, 201, 77, .45);
+  border: 1px solid var(--orange);
 }
 
 .results {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 10px;
@@ -238,16 +279,16 @@ p {
 .metric-card,
 .panel,
 .filters {
-  background: var(--panel);
+  background: rgba(18, 26, 37, .88);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
 }
 
 .results button {
   display: grid;
   gap: 8px;
-  min-height: 112px;
+  min-height: 110px;
   padding: 16px;
   color: var(--ink);
   text-align: left;
@@ -260,7 +301,7 @@ p {
 }
 
 .results strong {
-  font-size: 17px;
+  font-size: 16px;
 }
 
 .results span,
@@ -285,16 +326,22 @@ td small {
 
 .loading-state,
 .empty-state {
-  min-height: 360px;
+  min-height: 330px;
   display: grid;
   align-content: center;
   justify-items: start;
   color: var(--muted);
 }
 
+.empty-state {
+  padding: 28px;
+  border: 1px dashed rgba(100, 130, 158, .3);
+  border-radius: 14px;
+}
+
 .back-link {
   display: inline-flex;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   color: var(--muted);
   font-size: 11px;
   text-decoration: none;
@@ -308,11 +355,11 @@ td small {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin: 28px 0 14px;
+  margin: 24px 0 14px;
 }
 
 .metric-card {
-  min-height: 108px;
+  min-height: 112px;
   padding: 18px;
   display: flex;
   flex-direction: column;
@@ -330,6 +377,8 @@ th {
 .metric-card strong {
   font-size: clamp(28px, 3vw, 40px);
   line-height: 1;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 .filters {
@@ -347,11 +396,11 @@ th {
 
 .filters input,
 .filters select {
-  min-height: 38px;
+  min-height: 40px;
   padding: 0 10px;
-  background: var(--surface);
+  background: rgba(5, 9, 14, .66);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 8px;
 }
 
 .dashboard-grid {
@@ -381,9 +430,9 @@ th {
 
 .panel h2 {
   margin-bottom: 8px;
-  color: var(--muted);
+  color: var(--ink);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 650;
 }
 
 .treemap {
@@ -397,8 +446,8 @@ th {
 .tile {
   min-width: 0;
   padding: 10px;
-  color: #050506;
-  border-radius: 4px;
+  color: #071016;
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -413,12 +462,13 @@ th {
 }
 
 .tile strong {
-  font-size: 18px;
+  font-size: 17px;
+  letter-spacing: -.02em;
 }
 
 .tile span {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 720;
 }
 
 .bars {
@@ -450,13 +500,14 @@ th {
   font-size: 12px;
   font-style: normal;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .track,
 .move-track {
   position: relative;
   height: 8px;
-  background: #202026;
+  background: rgba(255, 255, 255, .06);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -535,12 +586,13 @@ td {
 }
 
 th {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 td {
   color: var(--ink);
   font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 
 td strong {
@@ -563,16 +615,16 @@ footer {
 @media (max-width: 980px) {
   .shell {
     width: min(100% - 32px, 760px);
-    padding-top: 32px;
   }
 
   .topbar {
     position: static;
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
     padding: 14px 16px;
   }
 
+  .search-panel,
   .kpis,
   .filters,
   .dashboard-grid {
@@ -590,9 +642,12 @@ footer {
 }
 
 @media (max-width: 520px) {
+  .brand strong {
+    font-size: 12px;
+  }
+
   .topbar nav {
-    width: 100%;
-    justify-content: space-between;
+    display: none;
   }
 
   .topbar nav a {
@@ -600,18 +655,26 @@ footer {
     font-size: 10px;
   }
 
+  .search-panel {
+    min-height: min(480px, calc(100vh - 64px));
+    padding: 44px 0 28px;
+  }
+
   .search-panel h1,
   .empty-state h1,
   .fund-hero h1 {
-    font-size: clamp(38px, 14vw, 56px);
+    font-size: clamp(42px, 16vw, 68px);
   }
 
   .fund-search {
     grid-template-columns: 24px 1fr;
+    min-height: auto;
   }
 
   .fund-search button {
     grid-column: 1 / -1;
+    border-top: 2px solid var(--orange);
+    border-left: 0;
   }
 
   .bar-row,
