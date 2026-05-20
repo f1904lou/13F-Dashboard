@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getCached, setCached } from "@/lib/cache";
 import {
+  fetchCikLookup,
   fetchCompanyTickers,
   fetchSubmissions,
+  mergeSearchResults,
   normalizeCik,
+  searchCikLookup,
   searchCompanies,
   selectLatest13FFilings,
   with13FAvailability
@@ -35,7 +38,14 @@ export async function GET(request: Request) {
     const companies = cachedCompanies || (await fetchCompanyTickers());
     if (!cachedCompanies) await setCached("sec:company-tickers", companies, 60 * 60 * 24);
 
-    const candidates = await searchCompanies(q, companies);
+    const cachedFilers = await getCached<Awaited<ReturnType<typeof fetchCikLookup>>>("sec:cik-lookup");
+    const filers = cachedFilers || (await fetchCikLookup());
+    if (!cachedFilers) await setCached("sec:cik-lookup", filers, 60 * 60 * 24);
+
+    const candidates = mergeSearchResults([
+      ...(await searchCompanies(q, companies)),
+      ...(await searchCikLookup(q, filers))
+    ]);
     const results = await with13FAvailability(candidates);
     return NextResponse.json({ results });
   } catch (error) {

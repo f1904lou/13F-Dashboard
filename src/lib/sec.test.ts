@@ -4,8 +4,10 @@ import { join } from "node:path";
 import {
   accessionNoDashes,
   buildMovement,
+  mergeSearchResults,
   normalizeCik,
   parseInformationTable,
+  searchCikLookup,
   selectLatest13FFilings,
   snapshotFromRows
 } from "@/lib/sec";
@@ -118,5 +120,27 @@ describe("SEC 13F utilities", () => {
     expect(movement.find(row => row.id === "A")?.status).toBe("Increased");
     expect(movement.find(row => row.id === "B")?.status).toBe("Exited");
     expect(movement.find(row => row.id === "C")?.status).toBe("New");
+  });
+
+  it("searches broad CIK lookup names and merges duplicate results", async () => {
+    const lookupResults = await searchCikLookup("situational awareness", [
+      { name: "Situational Awareness LP", cik: "0002045724" },
+      { name: "Unrelated Manager LLC", cik: "0000000001" }
+    ]);
+
+    expect(lookupResults).toEqual([
+      {
+        name: "Situational Awareness LP",
+        cik: "0002045724",
+        has13F: null
+      }
+    ]);
+
+    expect(mergeSearchResults([
+      { name: "NVIDIA CORP", cik: "0001045810", ticker: "NVDA", has13F: null },
+      { name: "NVIDIA CORP", cik: "0001045810", has13F: null }
+    ])).toEqual([
+      { name: "NVIDIA CORP", cik: "0001045810", ticker: "NVDA", has13F: null }
+    ]);
   });
 });

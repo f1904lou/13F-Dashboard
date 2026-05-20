@@ -13,12 +13,18 @@ import type {
 const SEC_ROOT = "https://www.sec.gov";
 const DATA_ROOT = "https://data.sec.gov";
 const COMPANY_TICKERS_URL = `${SEC_ROOT}/files/company_tickers.json`;
+const CIK_LOOKUP_URL = `${SEC_ROOT}/Archives/edgar/cik-lookup-data.txt`;
 const MAX_SEC_RPS_DELAY = 140;
 
 type SecCompany = {
   cik_str: number;
   ticker: string;
   title: string;
+};
+
+type SecFiler = {
+  name: string;
+  cik: string;
 };
 
 type RawInfoRow = {
@@ -353,6 +359,24 @@ export async function fetchCompanyTickers() {
   return Object.values(data);
 }
 
+export async function fetchCikLookup() {
+  const response = await secFetch(CIK_LOOKUP_URL, {
+    headers: { Accept: "text/plain, */*" }
+  });
+  const text = await response.text();
+  const filers: SecFiler[] = [];
+
+  for (const line of text.split(/\r?\n/)) {
+    const match = line.match(/^(.*):(\d{1,10}):$/);
+    const name = match?.[1]?.trim();
+    const cik = match?.[2];
+    if (!name || !cik) continue;
+    filers.push({ name, cik: normalizeCik(cik) });
+  }
+
+  return filers;
+}
+
 export async function buildFundDashboard(cik: string, companies: SecCompany[] = []) {
   const normalized = normalizeCik(cik);
   const submission = await fetchSubmissions(normalized);
@@ -417,6 +441,59 @@ export async function searchCompanies(query: string, companies: SecCompany[]) {
   return results.slice(0, 8);
 }
 
+function normalizedSearchText(value: string) {
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export async function searchCikLookup(query: string, filers: SecFiler[]) {
+  const q = normalizedSearchText(query);
+  if (!q) return [];
+  const tokens = q.split(" ").filter(Boolean);
+
+  return filers
+    .map(filer => {
+      const name = normalizedSearchText(filer.name);
+      let score = 0;
+      if (name === q) score += 80;
+      if (name.startsWith(q)) score += 60;
+      if (name.includes(q)) score += 35;
+      if (tokens.length > 1 && tokens.every(token => name.includes(token))) score += 25;
+      return { filer, score };
+    })
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.filer.name.localeCompare(b.filer.name))
+    .slice(0, 10)
+    .map(({ filer }) => ({
+      name: filer.name,
+      cik: filer.cik,
+      has13F: null
+    } satisfies SearchResult));
+}
+
+export function mergeSearchResults(results: SearchResult[], limit = 8) {
+  const byCik = new Map<string, SearchResult>();
+  for (const result of results) {
+    const existing = byCik.get(result.cik);
+    if (!existing) {
+      byCik.set(result.cik, result);
+      continue;
+    }
+
+    byCik.set(result.cik, {
+      ...existing,
+      ...result,
+      ticker: existing.ticker || result.ticker,
+      name: existing.ticker ? existing.name : result.name
+    });
+  }
+
+  return [...byCik.values()].slice(0, limit);
+}
+
 export async function with13FAvailability(results: SearchResult[]) {
   return Promise.all(
     results.map(async result => {
@@ -425,7 +502,7 @@ export async function with13FAvailability(results: SearchResult[]) {
         const filings = selectLatest13FFilings(submission, 1);
         return {
           ...result,
-          name: result.name.startsWith("CIK ") ? submission.name || result.name : result.name,
+          name: submission.name || result.name,
           has13F: filings.length > 0,
           latest13F: filings.at(-1)?.period
         } satisfies SearchResult;
