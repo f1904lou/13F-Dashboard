@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { compactDate, money, pct, whole } from "@/lib/format";
 import { sectorColors } from "@/lib/sectors";
 import type { FilingSnapshot, FundDashboardPayload, Holding, MovementRow, SearchResult } from "@/lib/types";
@@ -39,14 +40,33 @@ function changeLabel(row: MovementRow) {
   return "Flat";
 }
 
-function EmptyDashboard({ onExample }: { onExample: () => void }) {
+function utcTimestamp(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
+}
+
+function EmptyPanel({ children }: { children: ReactNode }) {
+  return <div className="empty-panel">{children}</div>;
+}
+
+function EmptyDashboard({
+  onExample,
+  eyebrow = "Try a known filing manager",
+  heading = "Load a sample fund.",
+  message = "Start with Situational Awareness LP, or search another manager above."
+}: {
+  onExample: () => void;
+  eyebrow?: string;
+  heading?: string;
+  message?: string;
+}) {
   return (
     <section className="empty-state">
-      <p className="eyebrow">Try a known filing manager</p>
-      <h1>Load a sample fund.</h1>
-      <p>
-        Start with Situational Awareness LP, or search another manager above.
-      </p>
+      <p className="eyebrow">{eyebrow}</p>
+      <h1>{heading}</h1>
+      <p>{message}</p>
       <button className="ghost-button" type="button" onClick={onExample}>
         Try Situational Awareness LP
       </button>
@@ -147,6 +167,8 @@ function Filters({
 
 function Treemap({ rows }: { rows: Holding[] }) {
   const total = rows.reduce((sum, row) => sum + row.value, 0);
+  if (!rows.length) return <EmptyPanel>No holdings match these filters.</EmptyPanel>;
+
   return (
     <div className="treemap" aria-label="Portfolio map">
       {rows.slice(0, 36).map(row => {
@@ -175,6 +197,8 @@ function Treemap({ rows }: { rows: Holding[] }) {
 function Bars({ rows, metric }: { rows: Holding[]; metric: "sector" | "type" }) {
   const data = sumBy(rows, metric);
   const total = data.reduce((sum, row) => sum + row.value, 0);
+  if (!data.length) return <EmptyPanel>No exposure to chart for this selection.</EmptyPanel>;
+
   return (
     <div className="bars">
       {data.map(row => {
@@ -225,6 +249,8 @@ function Trend({ filings }: { filings: FilingSnapshot[] }) {
 function MovementChart({ rows }: { rows: MovementRow[] }) {
   const selected = rows.slice(0, 16);
   const max = Math.max(...selected.map(row => Math.abs(row.delta)), 1);
+  if (!selected.length) return <EmptyPanel>No prior 13F movement available.</EmptyPanel>;
+
   return (
     <div className="movement-chart">
       {selected.map(row => {
@@ -232,7 +258,13 @@ function MovementChart({ rows }: { rows: MovementRow[] }) {
         const left = row.delta >= 0 ? 50 : 50 - width;
         return (
           <div className="move-row" key={row.id}>
-            <strong>{row.ticker || row.issuer}<span>{changeLabel(row)}</span></strong>
+            <strong>
+              <span className="move-name">{row.ticker || row.issuer}</span>
+              <span className="move-meta">
+                <span className="instrument-tag">{row.type}</span>
+                {changeLabel(row)}
+              </span>
+            </strong>
             <div className="move-track">
               <i />
               <b
@@ -252,6 +284,8 @@ function MovementChart({ rows }: { rows: MovementRow[] }) {
 }
 
 function HoldingsTable({ rows }: { rows: Holding[] }) {
+  if (!rows.length) return <EmptyPanel>No holdings match the current filters.</EmptyPanel>;
+
   return (
     <div className="table-wrap">
       <table>
@@ -285,6 +319,8 @@ function HoldingsTable({ rows }: { rows: Holding[] }) {
 }
 
 function MovesTable({ rows }: { rows: MovementRow[] }) {
+  if (!rows.length) return <EmptyPanel>No quarter-to-quarter moves available.</EmptyPanel>;
+
   return (
     <div className="table-wrap">
       <table>
@@ -340,7 +376,7 @@ function Dashboard({ payload }: { payload: FundDashboardPayload }) {
         <a className="back-link" href={l.source} target="_blank" rel="noreferrer">Latest SEC filing</a>
         <p className="eyebrow">SEC 13F-HR · CIK {payload.cik}</p>
         <h1>{payload.manager}</h1>
-        <p>{payload.manager}. Latest period {l.period}, filed {compactDate(l.filed)}. Built {new Date(payload.generatedAt).toLocaleString()}.</p>
+        <p>{payload.manager}. Latest period {l.period}, filed {compactDate(l.filed)}. Generated {utcTimestamp(payload.generatedAt)}.</p>
       </section>
 
       <Kpis payload={payload} />
@@ -371,12 +407,12 @@ function Dashboard({ payload }: { payload: FundDashboardPayload }) {
         <article className="panel">
           <div className="panel-head">
             <div>
-              <h2>Exposure Mix</h2>
-              <p>Sector and instrument split for the selected filing.</p>
+              <h2>Movement Since Prior 13F</h2>
+              <p>Latest quarter versus immediately prior 13F.</p>
             </div>
+            <span>Adds {money.format(totals.added)} · cuts {money.format(totals.reduced)}</span>
           </div>
-          <Bars rows={filtered} metric="sector" />
-          <Bars rows={filtered} metric="type" />
+          <MovementChart rows={payload.movement} />
         </article>
 
         <article className="panel">
@@ -392,12 +428,12 @@ function Dashboard({ payload }: { payload: FundDashboardPayload }) {
         <article className="panel">
           <div className="panel-head">
             <div>
-              <h2>Movement Since Prior 13F</h2>
-              <p>Latest quarter versus immediately prior 13F.</p>
+              <h2>Exposure Mix</h2>
+              <p>Sector and instrument split for the selected filing.</p>
             </div>
-            <span>Adds {money.format(totals.added)} · cuts {money.format(totals.reduced)}</span>
           </div>
-          <MovementChart rows={payload.movement} />
+          <Bars rows={filtered} metric="sector" />
+          <Bars rows={filtered} metric="type" />
         </article>
 
         <article className="panel table-panel wide">
@@ -425,6 +461,7 @@ function Dashboard({ payload }: { payload: FundDashboardPayload }) {
 }
 
 export function DashboardApp({ initialCik }: { initialCik?: string }) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [payload, setPayload] = useState<FundDashboardPayload | null>(null);
@@ -451,6 +488,7 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
     setStatus("loading");
     setError("");
     setResults([]);
+    setPayload(null);
     const response = await fetch(`/api/fund/${encodeURIComponent(cik)}`);
     const data = (await response.json()) as ApiFundResponse;
     if (!response.ok || !data.payload) {
@@ -474,6 +512,21 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
     void runSearch("0002045724");
   }
 
+  function loadExample(cik: string) {
+    navigateToFund(cik);
+  }
+
+  function navigateToFund(cik: string) {
+    setSearch(cik);
+    setError("");
+    setResults([]);
+    setPayload(null);
+    setStatus("loading");
+    router.push(`/funds/${cik}`);
+  }
+
+  const showCompactSearch = Boolean(payload || initialCik || status === "loading");
+
   return (
     <main>
       <header className="topbar">
@@ -489,10 +542,11 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
       </header>
 
       <div className="shell">
-        <section id="search" className="search-panel">
+        <section id="search" className={`search-panel${showCompactSearch ? " compact-search" : ""}`}>
           <div>
             <p className="eyebrow">SEC 13F Analyzer</p>
             <h1>Find a Fund</h1>
+            <p className="hero-subtitle">Explore institutional portfolios, position changes, and emerging themes.</p>
           </div>
           <form
             className="fund-search"
@@ -505,18 +559,24 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
             <input
               value={search}
               onChange={event => setSearch(event.target.value)}
-              placeholder="Search by CIK, ticker, or company name"
+              placeholder="Search funds, managers, tickers — Coatue, Viking, NVDA"
               aria-label="Search SEC filers"
             />
             <button type="submit" disabled={status === "searching"}>{status === "searching" ? "Searching" : "Search"}</button>
           </form>
+          <div className="featured-funds" aria-label="Featured funds">
+            <span>Featured</span>
+            <button type="button" onClick={() => loadExample("0002045724")}>Situational Awareness</button>
+            <button type="button" onClick={() => loadExample("0001135730")}>Coatue</button>
+            <button type="button" onClick={() => loadExample("0001067983")}>Berkshire</button>
+          </div>
           {results.length > 0 && (
             <div className="results" role="list">
               {results.map(result => (
                 <button
                   key={`${result.cik}-${result.ticker || "cik"}`}
                   type="button"
-                  onClick={() => void loadFund(result.cik)}
+                  onClick={() => navigateToFund(result.cik)}
                   disabled={result.has13F === false}
                   role="listitem"
                 >
@@ -534,7 +594,14 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
 
         <div id="dashboard">
           {status === "loading" && <section className="loading-state">Loading filer...</section>}
-          {!payload && status !== "loading" && error && <EmptyDashboard onExample={tryExample} />}
+          {!payload && status !== "loading" && error && (
+            <EmptyDashboard
+              onExample={tryExample}
+              eyebrow="No dashboard loaded"
+              heading="We could not load that 13F."
+              message={error}
+            />
+          )}
           {payload && status !== "loading" && <Dashboard key={payload.cik} payload={payload} />}
         </div>
 
