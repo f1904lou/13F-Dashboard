@@ -543,7 +543,7 @@ export function DashboardApp({ initialCik }: { initialCik?: string }) {
 
       <div className="shell">
         <section id="search" className={`search-panel${showCompactSearch ? " compact-search" : ""}`}>
-          <div>
+          <div className="search-copy">
             <p className="eyebrow">SEC 13F Analyzer</p>
             <h1>Find a Fund</h1>
             <p className="hero-subtitle">Explore institutional portfolios, position changes, and emerging themes.</p>
