@@ -462,6 +462,7 @@ export async function searchCikLookup(query: string, filers: SecFiler[]) {
       if (name.startsWith(q)) score += 60;
       if (name.includes(q)) score += 35;
       if (tokens.length > 1 && tokens.every(token => name.includes(token))) score += 25;
+      if (score > 0 && /\b(MANAGEMENT|ADVISORS?|CAPITAL|PARTNERS?)\b/.test(name)) score += 18;
       return { filer, score };
     })
     .filter(item => item.score > 0)
@@ -495,7 +496,7 @@ export function mergeSearchResults(results: SearchResult[], limit = 8) {
 }
 
 export async function with13FAvailability(results: SearchResult[]) {
-  return Promise.all(
+  const checked = await Promise.all(
     results.map(async result => {
       try {
         const submission = await fetchSubmissions(result.cik);
@@ -515,4 +516,9 @@ export async function with13FAvailability(results: SearchResult[]) {
       }
     })
   );
+
+  return checked.sort((a, b) => {
+    if (a.has13F !== b.has13F) return a.has13F ? -1 : b.has13F ? 1 : 0;
+    return a.name.localeCompare(b.name);
+  });
 }

@@ -143,4 +143,17 @@ describe("SEC 13F utilities", () => {
       { name: "NVIDIA CORP", cik: "0001045810", ticker: "NVDA", has13F: null }
     ]);
   });
+
+  it("prioritizes manager-like names in broad CIK lookup search", async () => {
+    const lookupResults = await searchCikLookup("coatue", [
+      { name: "Coatue Asia Fund LP", cik: "0001877824" },
+      { name: "Coatue Management LLC", cik: "0001135730" }
+    ]);
+
+    expect(lookupResults[0]).toEqual({
+      name: "Coatue Management LLC",
+      cik: "0001135730",
+      has13F: null
+    });
+  });
 });
