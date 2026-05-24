@@ -96,13 +96,13 @@ a {
   height: 7px;
   border: 0;
   border-radius: 2px;
-  background: var(--red);
+  background: var(--green);
 }
 
 .brand-mark::after {
   top: 14px;
   left: 15px;
-  background: var(--green);
+  background: var(--red);
 }
 
 .topbar nav {
